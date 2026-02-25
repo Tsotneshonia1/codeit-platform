@@ -20,6 +20,7 @@ enum Status {
   IN_REVIEW
   REVIEWED
   NEEDS_REVISION
+  APPROVED
 }
 
 // მომხმარებლის მოდელი

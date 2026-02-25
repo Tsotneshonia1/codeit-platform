@@ -3,6 +3,7 @@
 import { prisma } from "./lib/prisma";
 import { revalidatePath } from "next/cache";
 
+// დავალების გაგზავნის ფუნქცია (არსებული)
 export async function submitAssignment(formData: FormData) {
   console.log("SERVER: ფუნქცია გამოიძახა!"); 
 
@@ -24,6 +25,24 @@ export async function submitAssignment(formData: FormData) {
     return { success: true };
   } catch (error) {
     console.error("Submission error details:", error);
+    return { success: false };
+  }
+}
+
+// დავალების შემოწმების ფუნქცია 
+export async function approveAssignment(id: string) {
+  try {
+    await prisma.assignment.update({
+      where: { id },
+      data: { status: "APPROVED" },
+    });
+    
+    // ადმინის გვერდის განახლება, რომ სტატუსი ეგრევე შეიცვალოს
+    revalidatePath("/admin"); 
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Update error:", error);
     return { success: false };
   }
 }
