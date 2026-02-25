@@ -26,27 +26,31 @@ enum Status {
 // მომხმარებლის მოდელი
 model User {
   id            String       @id @default(cuid())
+  clerkId       String       @unique // Clerk-ის მომხმარებლის უნიკალური ID
   name          String?
   email         String       @unique
   role          Role         @default(STUDENT)
   image         String?
-  assignments   Assignment[]
-  feedbacks     Feedback[]
+  
+  assignments   Assignment[] // მომხმარებლის მიერ გაგზავნილი დავალებები
+  feedbacks     Feedback[]   // მომხმარებლის მიერ დაწერილი ფიდბექები
 }
 
 // დავალების მოდელი
 model Assignment {
-  id          String   @id @default(cuid())
-  title       String
-  githubUrl   String
-  liveUrl     String?
-  status      Status   @default(PENDING)
-  grade       Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  title        String
+  githubUrl    String
+  liveUrl      String?
+  status       Status   @default(PENDING)
+  grade        Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   
-  student     User     @relation(fields: [studentId], references: [id])
-  studentId   String
+  // კავშირი მომხმარებელთან (სტუდენტთან)
+  student      User     @relation(fields: [studentId], references: [id])
+  studentId    String
+  
   feedbacks    Feedback[]
 }
 
@@ -56,9 +60,11 @@ model Feedback {
   text         String
   createdAt    DateTime   @default(now())
   
+  // რომელ დავალებაზეა ფიდბექი
   assignment   Assignment @relation(fields: [assignmentId], references: [id])
   assignmentId String
   
+  // ვინ დაწერა ფიდბექი (მასწავლებელმა/ასისტენტმა)
   author       User       @relation(fields: [authorId], references: [id])
   authorId     String
 }
