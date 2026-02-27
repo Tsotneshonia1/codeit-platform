@@ -1,62 +1,40 @@
-"use client"; 
+import { auth } from "@clerk/nextjs/server";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import AssignmentForm from "@/components/AssignmentForm";
 
-import { submitAssignment } from "./actions";
-import { useState } from "react";
+export default async function HomePage() {
+  const { userId } = await auth();
 
-export default function SubmitAssignmentPage() {
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
-    const result = await submitAssignment(formData);
-    setLoading(false);
-
-    if (result.success) {
-      alert("დავალება წარმატებით გაიგზავნა! 🎉");
-      // აქ შეგვიძლია ფორმის გასუფთავება
-    } else {
-      alert("შეცდომა! სცადე ხელახლა.");
-    }
+  // თუ მომხმარებელი შესულია, ვაჩვენებთ ფორმას
+  if (userId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[80vh]">
+        <AssignmentForm />
+      </div>
+    );
   }
 
+  // თუ არ არის შესული, ვაჩვენებთ "Welcome" გვერდს რეგისტრაციის ღილაკებით
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10">
-        <header className="mb-10 text-center">
-          <h1 className="text-4xl font-black text-slate-900">Codeit Platform</h1>
-          <p className="text-slate-500 mt-3 text-lg">სტუდენტის პორტალი</p>
-        </header>
-
-        <form action={handleSubmit} className="space-y-8">
-          <div className="group">
-            <label className="block text-sm font-bold text-slate-700 mb-2.5">დავალების დასახელება</label>
-            <input 
-              name="title" 
-              required
-              disabled={loading}
-              className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-blue-500 outline-none transition-all disabled:opacity-50"
-            />
-          </div>
-
-          <div className="group">
-            <label className="block text-sm font-bold text-slate-700 mb-2.5">GitHub Link</label>
-            <input 
-              name="githubUrl" 
-              required
-              type="url"
-              disabled={loading}
-              className="w-full px-5 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-blue-500 outline-none transition-all disabled:opacity-50 font-mono text-sm"
-            />
-          </div>
-
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full bg-slate-900 hover:bg-blue-600 text-white font-black py-5 rounded-2xl transition-all active:scale-[0.97] disabled:bg-slate-400"
-          >
-            {loading ? "იგზავნება..." : "გაგზავნა 🚀"}
+    <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4">
+      <h1 className="text-5xl font-black mb-6 text-white tracking-tight">
+        მოგესალმებით <span className="text-blue-500">CODEIT</span>-ზე
+      </h1>
+      <p className="text-slate-400 text-xl mb-10 max-w-lg">
+        პლატფორმა სტუდენტებისთვის. გაიარეთ ავტორიზაცია დავალებების ასატვირთად.
+      </p>
+      
+      <div className="flex gap-4">
+        <SignInButton mode="modal">
+          <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all">
+            შესვლა
           </button>
-        </form>
+        </SignInButton>
+        <SignUpButton mode="modal">
+          <button className="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-xl font-bold transition-all border border-slate-700">
+            რეგისტრაცია
+          </button>
+        </SignUpButton>
       </div>
     </div>
   );
