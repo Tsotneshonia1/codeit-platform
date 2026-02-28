@@ -20,11 +20,9 @@ export async function submitAssignment(formData: FormData) {
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
 
     // UPSERT: ვეძებთ მომხმარებელს, თუ არ არსებობს - ვქმნით.
-    // ეს უზრუნველყოფს, რომ ბაზაში ყოველთვის არსებობდეს იუზერი, სანამ დავალება შეიქმნება.
     const dbUser = await prisma.user.upsert({
       where: { clerkId: userId },
       update: {
-        // ვანახლებთ სახელს და მეილს ყოველი შემთხვევისთვის
         name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Anonymous",
         email: userEmail,
       },
@@ -49,7 +47,7 @@ export async function submitAssignment(formData: FormData) {
       data: {
         title,
         githubUrl,
-        studentId: dbUser.id, // ვიყენებთ ჩვენი ბაზის შიდა ID-ს
+        studentId: dbUser.id,
         status: "PENDING",
       },
     });
@@ -77,7 +75,7 @@ export async function updateAssignmentStatus(id: string, status: Status) {
     await prisma.assignment.update({
       where: { id },
       data: { 
-        status: status // ახლა TypeScript მიხვდება, რომ 'status' ვალიდური ტიპია
+        status: status 
       },
     });
     
@@ -87,5 +85,59 @@ export async function updateAssignmentStatus(id: string, status: Status) {
   } catch (error) {
     console.error("Update error:", error);
     return { success: false };
+  }
+}
+// 3. დავალების შეფასების და კომენტარის ფუნქცია (ლექტორებისთვის/ადმინებისთვის)
+export async function gradeAssignment(assignmentId: string, grade: number | null, teacherComment: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "ავტორიზაცია აუცილებელია" };
+
+    await prisma.assignment.update({
+      where: { id: assignmentId },
+      data: {
+        grade: grade,
+        teacherComment: teacherComment || null, // თუ ცარიელია, null შეინახოს
+      },
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("შეფასების შეცდომა:", error);
+    return { success: false, error: "შეფასება ვერ მოხერხდა" };
+  }
+}
+
+// 4. სტუდენტის პასუხის/კომენტარის დამატების ფუნქცია
+export async function addStudentComment(assignmentId: string, studentComment: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "ავტორიზაცია აუცილებელია" };
+
+    // უსაფრთხოება: ვამოწმებთ, რომ სტუდენტი ნამდვილად თავის დავალებაზე წერს
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: { student: true }
+    });
+
+    if (assignment?.student.clerkId !== userId) {
+      return { success: false, error: "წვდომა შეზღუდულია: ეს არ არის თქვენი დავალება" };
+    }
+
+    await prisma.assignment.update({
+      where: { id: assignmentId },
+      data: {
+        studentComment: studentComment || null,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    console.error("კომენტარის დამატების შეცდომა:", error);
+    return { success: false, error: "კომენტარი ვერ დაემატა" };
   }
 }

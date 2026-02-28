@@ -6,10 +6,6 @@ import Image from "next/image";
 export default async function HomePage() {
   const { userId } = await auth();
 
-  if (userId) {
-    redirect("/dashboard");
-  }
-
   return (
     <div className="min-h-screen bg-[#0b0f1a] text-slate-200 font-sans">
       {/* Hero Section */}

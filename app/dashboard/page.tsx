@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "../lib/prisma";
 import AssignmentForm from "@/components/AssignmentForm";
+import { addStudentComment } from "../actions"; // შემოვიტანეთ პასუხის გაგზავნის ფუნქცია
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -44,36 +45,91 @@ export default async function DashboardPage() {
             {myAssignments.map((task) => (
               <div 
                 key={task.id} 
-                className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex justify-between items-center hover:border-blue-500/50 transition-all group"
+                className="bg-[#1e293b] p-6 rounded-2xl border border-slate-800 flex flex-col hover:border-blue-500/50 transition-all group shadow-lg"
               >
-                <div>
-                  <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">
-                    {task.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    გაგზავნილია: {new Date(task.createdAt).toLocaleString('ka-GE')}
-                  </p>
-                  <a 
-                    href={task.githubUrl} 
-                    target="_blank" 
-                    className="text-sm text-blue-500 hover:text-blue-400 underline mt-3 inline-block font-mono"
-                  >
-                    View Code on GitHub ↗
-                  </a>
+                {/* ზედა ნაწილი: ძირითადი ინფორმაცია */}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">
+                      {task.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      გაგზავნილია: {new Date(task.createdAt).toLocaleString('ka-GE')}
+                    </p>
+                    <a 
+                      href={task.githubUrl} 
+                      target="_blank" 
+                      className="text-sm text-blue-500 hover:text-blue-400 underline mt-3 inline-block font-mono"
+                    >
+                      View Code on GitHub ↗
+                    </a>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                      task.status === "PENDING"
+                        ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                        : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                    }`}>
+                      {task.status}
+                    </span>
+                    {task.status === "APPROVED" && (
+                      <span className="text-[10px] text-emerald-500 font-bold italic">შემოწმებულია</span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2">
-                  <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                    task.status === "PENDING"
-                      ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                      : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                  }`}>
-                    {task.status}
-                  </span>
-                  {task.status === "APPROVED" && (
-                    <span className="text-[10px] text-emerald-500 font-bold italic">შემოწმებულია</span>
-                  )}
-                </div>
+                {/* ქვედა ნაწილი: შეფასება და ფიდბექი (გამოჩნდება მხოლოდ მაშინ, თუ ლექტორმა შეაფასა) */}
+                {(task.grade !== null || task.teacherComment) && (
+                  <div className="mt-5 pt-5 border-t border-slate-700/50 flex flex-col md:flex-row gap-6 justify-between items-start">
+                    
+                    {/* კომენტარების სექცია */}
+                    <div className="flex-1 w-full space-y-4">
+                      {task.teacherComment && (
+                        <div>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <span>💬</span> ლექტორის კომენტარი:
+                          </p>
+                          <p className="text-sm text-slate-300 italic">"{task.teacherComment}"</p>
+                        </div>
+                      )}
+
+                      {/* სტუდენტის პასუხის ფორმა ან უკვე გაგზავნილი პასუხი */}
+                      {task.studentComment ? (
+                        <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl border-l-4 border-l-blue-500">
+                          <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-1">ჩემი პასუხი:</p>
+                          <p className="text-sm text-blue-100">"{task.studentComment}"</p>
+                        </div>
+                      ) : (
+                        <form action={async (formData: FormData) => {
+                          "use server";
+                          const comment = formData.get("studentComment") as string;
+                          if (comment) await addStudentComment(task.id, comment);
+                        }} className="flex gap-2 w-full mt-2">
+                          <input 
+                            name="studentComment" 
+                            type="text" 
+                            required
+                            placeholder="უპასუხეთ ლექტორს..." 
+                            className="flex-1 bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-all"
+                          />
+                          <button type="submit" className="bg-slate-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all">
+                            გაგზავნა
+                          </button>
+                        </form>
+                      )}
+                    </div>
+
+                    {/* ქულის სექცია */}
+                    {task.grade !== null && (
+                      <div className="bg-[#0f172a] px-6 py-3 rounded-2xl border border-slate-700 text-center min-w-[100px] shadow-inner shrink-0">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">ქულა</p>
+                        <p className="text-3xl font-black text-emerald-400">{task.grade}<span className="text-sm text-slate-500">/100</span></p>
+                      </div>
+                    )}
+
+                  </div>
+                )}
               </div>
             ))}
 
