@@ -12,7 +12,7 @@ export default async function AdminDashboard() {
   // 2. მასწავლებლების "თეთრი სია"
   const adminEmails = [
     "cotneshonia.17@gmail.com",
-    "tsotneshonia17@gmail.com",
+    "shiodjamurashvili26@gmail.com",
     "maswavlebeli3@gmail.com"
   ];
 
