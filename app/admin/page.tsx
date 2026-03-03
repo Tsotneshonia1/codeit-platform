@@ -23,6 +23,9 @@ export default async function AdminDashboard() {
     redirect("/");
   }
 
+  // ❗ ᲐᲮᲐᲚᲘ: ვიღებთ ადმინის სახელს და გვარს Clerk-იდან ❗
+  const adminFullName = `${user.firstName || ""} ${user.lastName || ""}`.trim() || "ლექტორი";
+
   // დავალებების წამოღება ბაზიდან
   const assignments = await prisma.assignment.findMany({
     orderBy: {
@@ -149,8 +152,8 @@ export default async function AdminDashboard() {
                             const grade = gradeStr ? parseInt(gradeStr, 10) : null;
                             const comment = formData.get("teacherComment") as string;
                             
-                            // ❗ ᲐᲮᲐᲚᲘ: userEmail გავატანეთ მე-4 პარამეტრად ❗
-                            await gradeAssignment(task.id, grade, comment, userEmail);
+                            // ❗ ᲐᲮᲐᲚᲘ: userEmail-ის ნაცვლად გავატანეთ adminFullName ❗
+                            await gradeAssignment(task.id, grade, comment, adminFullName);
                           }} className="flex flex-col md:flex-row gap-4 items-end">
                             
                             <div className="w-full md:w-1/4">

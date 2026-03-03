@@ -79,7 +79,7 @@ export default async function DashboardPage() {
                   </div>
                 </div>
 
-                {/* ქვედა ნაწილი: შეფასება და ფიდბექი (გამოჩნდება მხოლოდ მაშინ, თუ ლექტორმა შეაფასა ან კომენტარი დატოვა) */}
+                {/* ქვედა ნაწილი: შეფასება და ფიდბექი */}
                 {(task.grade !== null || task.teacherComment || task.gradedBy) && (
                   <div className="mt-5 pt-5 border-t border-slate-700/50 flex flex-col md:flex-row gap-6 justify-between items-start">
                     
@@ -101,7 +101,9 @@ export default async function DashboardPage() {
                       {task.teacherComment && (
                         <div>
                           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <span>💬</span> ლექტორის კომენტარი:
+                            <span>💬</span> 
+                            {/* ❗ ᲐᲮᲐᲚᲘ: აქ გამოჩნდება სახელობითი კომენტარი ❗ */}
+                            {task.gradedBy ? `${task.gradedBy}-ს კომენტარი:` : "ლექტორის კომენტარი:"}
                           </p>
                           <p className="text-sm text-slate-300 italic">"{task.teacherComment}"</p>
                         </div>
