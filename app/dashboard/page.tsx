@@ -54,7 +54,7 @@ export default async function DashboardPage() {
                       {task.title}
                     </h3>
                     <p className="text-xs text-slate-500 mt-1">
-                      გაგზავნილია: {new Date(task.createdAt).toLocaleString('ka-GE')}
+                      გაგზავნილია: {new Date(task.createdAt).toLocaleString('ka-GE', { timeZone: 'Asia/Tbilisi' })}
                     </p>
                     <a 
                       href={task.githubUrl} 
@@ -84,30 +84,30 @@ export default async function DashboardPage() {
                   <div className="mt-5 pt-5 border-t border-slate-700/50 flex flex-col md:flex-row gap-6 justify-between items-start">
                     
                     {/* კომენტარების სექცია */}
-                    <div className="flex-1 w-full space-y-4">
-                      
-                      {/* ❗ ᲐᲮᲐᲚᲘ: ვინ და როდის შეასწორა ❗ */}
-                      {task.gradedBy && task.gradedAt && (
-                         <div className="flex flex-wrap items-center gap-2 mb-2 bg-[#0f172a]/50 p-2 rounded-lg border border-slate-700/50 w-fit">
-                           <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">შემფასებელი:</span>
-                           <span className="text-xs font-mono text-blue-400 font-bold">{task.gradedBy}</span>
-                           <span className="text-slate-600">|</span>
-                           <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                              🕒 {new Date(task.gradedAt).toLocaleString('ka-GE')}
-                           </span>
-                         </div>
-                      )}
+                    {/* კომენტარების სექცია */}
+<div className="flex-1 w-full space-y-4">
+  
+  {/* ❗ ვინ და როდის შეასწორა ❗ */}
+  {task.gradedBy && task.gradedAt && (
+     <div className="flex flex-wrap items-center gap-2 mb-2 bg-[#0f172a]/50 p-2 rounded-lg border border-slate-700/50 w-fit">
+       <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">შემფასებელი:</span>
+       <span className="text-xs font-mono text-blue-400 font-bold">{task.gradedBy}</span>
+       <span className="text-slate-600">|</span>
+       <span className="text-[10px] text-slate-500 flex items-center gap-1">
+          🕒 {new Date(task.gradedAt).toLocaleString('ka-GE', { timeZone: 'Asia/Tbilisi' })}
+       </span>
+     </div>
+  )}
 
-                      {task.teacherComment && (
-                        <div>
-                          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <span>💬</span> 
-                            {/* ❗ ᲐᲮᲐᲚᲘ: აქ გამოჩნდება სახელობითი კომენტარი ❗ */}
-                            {task.gradedBy ? `${task.gradedBy}-ს კომენტარი:` : "ლექტორის კომენტარი:"}
-                          </p>
-                          <p className="text-sm text-slate-300 italic">"{task.teacherComment}"</p>
-                        </div>
-                      )}
+  {task.teacherComment && (
+    <div>
+      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+        <span>💬</span> 
+        ლექტორის კომენტარი:
+      </p>
+      <p className="text-sm text-slate-300 italic">"{task.teacherComment}"</p>
+    </div>
+  )}
 
                       {/* სტუდენტის პასუხის ფორმა ან უკვე გაგზავნილი პასუხი */}
                       {task.studentComment ? (

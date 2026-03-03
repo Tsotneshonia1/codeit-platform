@@ -132,7 +132,7 @@ export default async function AdminDashboard() {
                                 ბოლო შეფასება: <span className="font-bold text-blue-400 ml-1">{task.gradedBy}</span>
                               </span>
                               <span className="text-[10px] text-slate-500 font-mono bg-[#0b0f1a] px-2 py-1 rounded">
-                                {new Date(task.gradedAt).toLocaleString('ka-GE')}
+                                {new Date(task.gradedAt).toLocaleString('ka-GE', { timeZone: 'Asia/Tbilisi' })}
                               </span>
                             </div>
                           )}
