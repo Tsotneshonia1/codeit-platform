@@ -121,6 +121,19 @@ export default async function AdminDashboard() {
                         </summary>
                         
                         <div className="p-6 bg-[#0f172a] border-t border-slate-800/50">
+                          
+                          {/* ❗ ᲐᲮᲐᲚᲘ: ვინ და როდის შეასწორა ❗ */}
+                          {task.gradedBy && task.gradedAt && (
+                            <div className="mb-5 p-3 bg-[#1e293b]/50 border border-slate-700/50 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                              <span className="text-xs text-slate-400">
+                                ბოლო შეფასება: <span className="font-bold text-blue-400 ml-1">{task.gradedBy}</span>
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-mono bg-[#0b0f1a] px-2 py-1 rounded">
+                                {new Date(task.gradedAt).toLocaleString('ka-GE')}
+                              </span>
+                            </div>
+                          )}
+
                           {/* სტუდენტის პასუხის ჩვენება */}
                           {task.studentComment && (
                             <div className="mb-5 p-4 bg-blue-500/5 border border-blue-500/10 rounded-lg border-l-4 border-l-blue-500">
@@ -135,7 +148,9 @@ export default async function AdminDashboard() {
                             const gradeStr = formData.get("grade") as string;
                             const grade = gradeStr ? parseInt(gradeStr, 10) : null;
                             const comment = formData.get("teacherComment") as string;
-                            await gradeAssignment(task.id, grade, comment);
+                            
+                            // ❗ ᲐᲮᲐᲚᲘ: userEmail გავატანეთ მე-4 პარამეტრად ❗
+                            await gradeAssignment(task.id, grade, comment, userEmail);
                           }} className="flex flex-col md:flex-row gap-4 items-end">
                             
                             <div className="w-full md:w-1/4">
@@ -143,7 +158,7 @@ export default async function AdminDashboard() {
                               <input 
                                 type="number" 
                                 name="grade" 
-                                defaultValue={task.grade || ""}
+                                defaultValue={task.grade ?? ""}
                                 max="100" 
                                 min="0"
                                 className="w-full bg-[#1e293b] border border-slate-700 rounded-lg px-4 py-2.5 text-white font-mono focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" 

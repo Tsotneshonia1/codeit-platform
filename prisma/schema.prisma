@@ -43,13 +43,17 @@ model Assignment {
   githubUrl      String
   liveUrl        String?
   status         Status     @default(PENDING)
-  grade          Int?       // ქულა (უკვე გქონდა)
-  teacherComment String?    // ახალი: ლექტორის კომენტარი/ფიდბექი
-  studentComment String?    // ახალი: სტუდენტის პასუხი ლექტორს
+  grade          Int?       
+  teacherComment String?    
+  studentComment String?    
+  
+  // აი, ეს ორი ველი დავამატოთ:
+  gradedBy       String?    // ვინ შეასწორა (ადმინის იმეილი ან სახელი)
+  gradedAt       DateTime?  // შეფასების ზუსტი თარიღი და დრო
+
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   
-  // კავშირი მომხმარებელთან (სტუდენტთან)
   student        User       @relation(fields: [studentId], references: [id])
   studentId      String
   

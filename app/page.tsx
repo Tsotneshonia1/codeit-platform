@@ -79,7 +79,7 @@ export default async function HomePage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                     </div>
-                    <h4 className="font-bold text-white text-xl md:text-2xl">შიო ზამურაშვილი</h4>
+                    <h4 className="font-bold text-white text-xl md:text-2xl">შიო ჟამურაშვილი</h4>
                     <p className="font-bold text-blue-400 text-base">მთავარი ლექტორი</p>
                 </div>
 
