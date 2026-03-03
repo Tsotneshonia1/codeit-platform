@@ -87,8 +87,15 @@ export async function updateAssignmentStatus(id: string, status: Status) {
     return { success: false };
   }
 }
+
 // 3. დავალების შეფასების და კომენტარის ფუნქცია (ლექტორებისთვის/ადმინებისთვის)
-export async function gradeAssignment(assignmentId: string, grade: number | null, teacherComment: string) {
+// ❗ ᲐᲮᲐᲚᲘ: დავამატეთ მე-4 პარამეტრი (adminEmail) ❗
+export async function gradeAssignment(
+  assignmentId: string, 
+  grade: number | null, 
+  teacherComment: string,
+  adminEmail: string // <--- ეს მიიღებს იმეილს admin/page.tsx-დან
+) {
   try {
     const { userId } = await auth();
     if (!userId) return { success: false, error: "ავტორიზაცია აუცილებელია" };
@@ -97,7 +104,9 @@ export async function gradeAssignment(assignmentId: string, grade: number | null
       where: { id: assignmentId },
       data: {
         grade: grade,
-        teacherComment: teacherComment || null, // თუ ცარიელია, null შეინახოს
+        teacherComment: teacherComment || null,
+        gradedBy: adminEmail,    // <--- ❗ ვინ შეასწორა ❗
+        gradedAt: new Date(),    // <--- ❗ ზუსტი დროის ჩაწერა ბაზაში ❗
       },
     });
 
