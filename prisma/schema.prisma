@@ -23,55 +23,19 @@ enum Status {
   APPROVED
 }
 
-
 model User {
   id          String       @id @default(cuid())
-<<<<<<< HEAD
   clerkId     String       @unique // Clerk-ის მომხმარებლის უნიკალური ID
-=======
-  clerkId     String       @unique 
->>>>>>> feature/ui-and-dashboard
   name        String?
   email       String       @unique
   role        Role         @default(STUDENT)
   image       String?
   
-<<<<<<< HEAD
   assignments Assignment[] // მომხმარებლის მიერ გაგზავნილი დავალებები
   feedbacks   Feedback[]   // მომხმარებლის მიერ დაწერილი ფიდბექები
-=======
-  assignments Assignment[] 
-  feedbacks   Feedback[]   
->>>>>>> feature/ui-and-dashboard
 }
-
 
 model Assignment {
-<<<<<<< HEAD
-  id             String     @id @default(cuid())
-  title          String
-  githubUrl      String
-  liveUrl        String?
-  status         Status     @default(PENDING)
-  grade          Int?       
-  teacherComment String?    
-  studentComment String?    
-  
-  // აი, ეს ორი ველი დავამატოთ:
-  gradedBy       String?    // ვინ შეასწორა (ადმინის იმეილი ან სახელი)
-  gradedAt       DateTime?  // შეფასების ზუსტი თარიღი და დრო
-
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  
-  student        User       @relation(fields: [studentId], references: [id])
-  studentId      String
-  
-  feedbacks      Feedback[]
-}
-
-// ფიდბექის მოდელი (ვტოვებთ ხელუხლებლად სამომავლო, უფრო რთული თრედებისთვის)
-=======
   id          String   @id @default(cuid())
   title       String
   githubUrl   String
@@ -81,25 +45,21 @@ model Assignment {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-
   student     User     @relation(fields: [studentId], references: [id])
   studentId   String
   
   feedbacks   Feedback[]
 }
 
-
->>>>>>> feature/ui-and-dashboard
 model Feedback {
   id           String     @id @default(cuid())
   text         String
   createdAt    DateTime   @default(now())
   
-
+  // კასკადური წაშლა, რათა დავალების წაშლისას ესეც წაიშალოს
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   assignmentId String
   
-
   author       User       @relation(fields: [authorId], references: [id])
   authorId     String
 }
