@@ -23,21 +23,31 @@ enum Status {
   APPROVED
 }
 
-// მომხმარებლის მოდელი
+
 model User {
   id          String       @id @default(cuid())
+<<<<<<< HEAD
   clerkId     String       @unique // Clerk-ის მომხმარებლის უნიკალური ID
+=======
+  clerkId     String       @unique 
+>>>>>>> feature/ui-and-dashboard
   name        String?
   email       String       @unique
   role        Role         @default(STUDENT)
   image       String?
   
+<<<<<<< HEAD
   assignments Assignment[] // მომხმარებლის მიერ გაგზავნილი დავალებები
   feedbacks   Feedback[]   // მომხმარებლის მიერ დაწერილი ფიდბექები
+=======
+  assignments Assignment[] 
+  feedbacks   Feedback[]   
+>>>>>>> feature/ui-and-dashboard
 }
 
-// დავალების მოდელი
+
 model Assignment {
+<<<<<<< HEAD
   id             String     @id @default(cuid())
   title          String
   githubUrl      String
@@ -61,16 +71,35 @@ model Assignment {
 }
 
 // ფიდბექის მოდელი (ვტოვებთ ხელუხლებლად სამომავლო, უფრო რთული თრედებისთვის)
+=======
+  id          String   @id @default(cuid())
+  title       String
+  githubUrl   String
+  liveUrl     String?
+  status      Status   @default(PENDING)
+  grade       Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+
+  student     User     @relation(fields: [studentId], references: [id])
+  studentId   String
+  
+  feedbacks   Feedback[]
+}
+
+
+>>>>>>> feature/ui-and-dashboard
 model Feedback {
   id           String     @id @default(cuid())
   text         String
   createdAt    DateTime   @default(now())
   
-  // რომელ დავალებაზეა ფიდბექი
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   assignmentId String
   
-  // ვინ დაწერა ფიდბექი (მასწავლებელმა/ასისტენტმა)
+
   author       User       @relation(fields: [authorId], references: [id])
   authorId     String
 }
