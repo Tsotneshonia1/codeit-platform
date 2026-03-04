@@ -39,7 +39,6 @@ export default async function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#040812] p-4 md:p-8 text-slate-200 selection:bg-blue-500/30">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* 🌟 Header Section */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-[#0a0f1c]/80 p-8 rounded-[2rem] border border-white/5 backdrop-blur-xl shadow-2xl">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -73,8 +72,6 @@ export default async function AdminDashboard() {
             </span>
           </div>
         </header>
-
-        {/* 📊 Table Section */}
         <div className="bg-[#0a0f1c]/80 rounded-[2rem] shadow-2xl overflow-hidden border border-white/5 backdrop-blur-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[900px]">
@@ -190,7 +187,6 @@ export default async function AdminDashboard() {
                             </div>
                           )}
 
-                          {/* 🗑️ წაშლის ღილაკი Neon-ისთვის */}
                           <form
                             action={async () => {
                               "use server";
