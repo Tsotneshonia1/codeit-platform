@@ -5,10 +5,8 @@ import { revalidatePath } from "next/cache";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { Status } from "@prisma/client";
 
-// 1. დავალების გაგზავნის ფუნქცია (სტუდენტებისთვის)
 export async function submitAssignment(formData: FormData) {
   try {
-    // ავტორიზაციის შემოწმება Clerk-ით
     const { userId } = await auth();
     const clerkUser = await currentUser();
 
@@ -16,22 +14,22 @@ export async function submitAssignment(formData: FormData) {
       return { success: false, error: "ავტორიზაცია აუცილებელია" };
     }
 
-    // ვიღებთ მეილს უსაფრთხოდ
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
 
-    // UPSERT: ვეძებთ მომხმარებელს, თუ არ არსებობს - ვქმნით.
-    // ეს უზრუნველყოფს, რომ ბაზაში ყოველთვის არსებობდეს იუზერი, სანამ დავალება შეიქმნება.
     const dbUser = await prisma.user.upsert({
       where: { clerkId: userId },
       update: {
-        // ვანახლებთ სახელს და მეილს ყოველი შემთხვევისთვის
-        name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Anonymous",
-        email: userEmail,
+        name:
+          `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+          "Anonymous",
+        email: userEmail || "",
       },
       create: {
         clerkId: userId,
-        name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Anonymous",
-        email: userEmail,
+        name:
+          `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+          "Anonymous",
+        email: userEmail || "",
         role: "STUDENT",
       },
     });
@@ -39,28 +37,23 @@ export async function submitAssignment(formData: FormData) {
     const title = formData.get("title") as string;
     const githubUrl = formData.get("githubUrl") as string;
 
-    // მონაცემების ვალიდაცია
     if (!title || !githubUrl) {
       return { success: false, error: "გთხოვთ შეავსოთ ყველა ველი" };
     }
 
-    // დავალების შექმნა და მიბმა იუზერზე
     await prisma.assignment.create({
       data: {
         title,
         githubUrl,
-        studentId: dbUser.id, // ვიყენებთ ჩვენი ბაზის შიდა ID-ს
+        studentId: dbUser.id,
         status: "PENDING",
       },
     });
 
-    console.log("დავალება წარმატებით გაიგზავნა!");
-    
-    // ქეშის გასუფთავება გვერდების დასააფდეითებლად
     revalidatePath("/");
     revalidatePath("/dashboard");
-    revalidatePath("/admin"); 
-    
+    revalidatePath("/admin");
+
     return { success: true };
   } catch (error) {
     console.error("Submission error:", error);
@@ -68,24 +61,130 @@ export async function submitAssignment(formData: FormData) {
   }
 }
 
-// 2. დავალების სტატუსის შეცვლის ფუნქცია (ადმინებისთვის)
-export async function updateAssignmentStatus(id: string, status: Status) { 
+export async function updateAssignmentStatus(id: string, status: Status) {
   try {
     const { userId } = await auth();
-    // აქ შეგიძლია დაამატო შემოწმება, არის თუ არა მომხმარებელი ადმინი
+    if (!userId) return { success: false, error: "Unauthorized" };
 
     await prisma.assignment.update({
       where: { id },
-      data: { 
-        status: status // ახლა TypeScript მიხვდება, რომ 'status' ვალიდური ტიპია
-      },
+      data: { status },
     });
-    
+
     revalidatePath("/admin");
-    revalidatePath("/dashboard"); 
+    revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
     console.error("Update error:", error);
     return { success: false };
+  }
+}
+
+export async function approveAssignment(
+  assignmentId: string,
+  grade: number,
+  comment: string,
+) {
+  try {
+    const { userId } = await auth();
+    const clerkUser = await currentUser();
+
+    if (!userId || !clerkUser) {
+      throw new Error("ავტორიზაცია აუცილებელია");
+    }
+
+    const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
+
+    const dbAdmin = await prisma.user.upsert({
+      where: { clerkId: userId },
+      update: {
+        name:
+          `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+          "Admin",
+        email: userEmail || "",
+      },
+      create: {
+        clerkId: userId,
+        name:
+          `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+          "Admin",
+        email: userEmail || "",
+        role: "LECTURER",
+      },
+    });
+
+    await prisma.assignment.update({
+      where: { id: assignmentId },
+      data: {
+        status: "APPROVED",
+        grade: grade,
+      },
+    });
+
+    if (comment && comment.trim() !== "") {
+      await prisma.feedback.create({
+        data: {
+          text: comment,
+          assignmentId: assignmentId,
+          authorId: dbAdmin.id,
+        },
+      });
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Approve error:", error);
+    throw new Error("შეცდომა შეფასების შენახვისას");
+  }
+}
+
+export async function addStudentComment(assignmentId: string, text: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("ავტორიზაცია აუცილებელია");
+
+    const dbUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+
+    if (!dbUser) throw new Error("მომხმარებელი ვერ მოიძებნა");
+
+    await prisma.feedback.create({
+      data: {
+        text: text,
+        assignmentId: assignmentId,
+        authorId: dbUser.id,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/admin");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Comment error:", error);
+    throw new Error("ვერ მოხერხდა კომენტარის დამატება");
+  }
+}
+
+export async function deleteAssignment(id: string) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "ავტორიზაცია აუცილებელია" };
+
+    await prisma.assignment.delete({
+      where: { id },
+    });
+
+    revalidatePath("/admin");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Delete error:", error);
+    return { success: false, error: "ვერ მოხერხდა დავალების წაშლა" };
   }
 }
