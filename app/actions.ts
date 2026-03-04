@@ -16,14 +16,6 @@ export async function submitAssignment(formData: FormData) {
 
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
 
-<<<<<<< HEAD
-    // UPSERT: ვეძებთ მომხმარებელს, თუ არ არსებობს - ვქმნით.
-    const dbUser = await prisma.user.upsert({
-      where: { clerkId: userId },
-      update: {
-        name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || "Anonymous",
-        email: userEmail,
-=======
     const dbUser = await prisma.user.upsert({
       where: { clerkId: userId },
       update: {
@@ -31,7 +23,6 @@ export async function submitAssignment(formData: FormData) {
           `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
           "Anonymous",
         email: userEmail || "",
->>>>>>> feature/ui-and-dashboard
       },
       create: {
         clerkId: userId,
@@ -77,13 +68,7 @@ export async function updateAssignmentStatus(id: string, status: Status) {
 
     await prisma.assignment.update({
       where: { id },
-<<<<<<< HEAD
-      data: { 
-        status: status 
-      },
-=======
       data: { status },
->>>>>>> feature/ui-and-dashboard
     });
 
     revalidatePath("/admin");
@@ -95,19 +80,6 @@ export async function updateAssignmentStatus(id: string, status: Status) {
   }
 }
 
-<<<<<<< HEAD
-// 3. დავალების შეფასების და კომენტარის ფუნქცია (ლექტორებისთვის/ადმინებისთვის)
-// ❗ ᲐᲮᲐᲚᲘ: დავამატეთ მე-4 პარამეტრი (adminEmail) ❗
-export async function gradeAssignment(
-  assignmentId: string, 
-  grade: number | null, 
-  teacherComment: string,
-  adminEmail: string // <--- ეს მიიღებს იმეილს admin/page.tsx-დან
-) {
-  try {
-    const { userId } = await auth();
-    if (!userId) return { success: false, error: "ავტორიზაცია აუცილებელია" };
-=======
 export async function approveAssignment(
   assignmentId: string,
   grade: number,
@@ -140,31 +112,10 @@ export async function approveAssignment(
         role: "LECTURER",
       },
     });
->>>>>>> feature/ui-and-dashboard
 
     await prisma.assignment.update({
       where: { id: assignmentId },
       data: {
-<<<<<<< HEAD
-        grade: grade,
-        teacherComment: teacherComment || null,
-        gradedBy: adminEmail,    // <--- ❗ ვინ შეასწორა ❗
-        gradedAt: new Date(),    // <--- ❗ ზუსტი დროის ჩაწერა ბაზაში ❗
-      },
-    });
-
-    revalidatePath("/admin");
-    revalidatePath("/dashboard");
-    return { success: true };
-  } catch (error) {
-    console.error("შეფასების შეცდომა:", error);
-    return { success: false, error: "შეფასება ვერ მოხერხდა" };
-  }
-}
-
-// 4. სტუდენტის პასუხის/კომენტარის დამატების ფუნქცია
-export async function addStudentComment(assignmentId: string, studentComment: string) {
-=======
         status: "APPROVED",
         grade: grade,
       },
@@ -220,38 +171,10 @@ export async function addStudentComment(assignmentId: string, text: string) {
 }
 
 export async function deleteAssignment(id: string) {
->>>>>>> feature/ui-and-dashboard
   try {
     const { userId } = await auth();
     if (!userId) return { success: false, error: "ავტორიზაცია აუცილებელია" };
 
-<<<<<<< HEAD
-    // უსაფრთხოება: ვამოწმებთ, რომ სტუდენტი ნამდვილად თავის დავალებაზე წერს
-    const assignment = await prisma.assignment.findUnique({
-      where: { id: assignmentId },
-      include: { student: true }
-    });
-
-    if (assignment?.student.clerkId !== userId) {
-      return { success: false, error: "წვდომა შეზღუდულია: ეს არ არის თქვენი დავალება" };
-    }
-
-    await prisma.assignment.update({
-      where: { id: assignmentId },
-      data: {
-        studentComment: studentComment || null,
-      },
-    });
-
-    revalidatePath("/dashboard");
-    revalidatePath("/admin");
-    return { success: true };
-  } catch (error) {
-    console.error("კომენტარის დამატების შეცდომა:", error);
-    return { success: false, error: "კომენტარი ვერ დაემატა" };
-  }
-}
-=======
     await prisma.assignment.delete({
       where: { id },
     });
@@ -265,4 +188,3 @@ export async function deleteAssignment(id: string) {
     return { success: false, error: "ვერ მოხერხდა დავალების წაშლა" };
   }
 }
->>>>>>> feature/ui-and-dashboard
